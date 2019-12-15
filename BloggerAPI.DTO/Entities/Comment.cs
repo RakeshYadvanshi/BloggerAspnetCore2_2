@@ -8,9 +8,10 @@ namespace BloggerAPI.DTO.Entities
     {
         public int Id { get; set; }
         public string CommentText { get; set; }
+        public int CommentOnId { get; set; }
         public string CommentOn { get; set; }
         public DateTime CreatedDate { get; set; }
-        public DateTime LastModified { get; set; }
+        public DateTime? LastModified { get; set; }
 
         public int CreatedBy { get; set; }
     }

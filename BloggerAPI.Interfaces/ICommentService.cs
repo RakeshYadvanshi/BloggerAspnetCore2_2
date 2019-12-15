@@ -1,4 +1,5 @@
 ﻿using BloggerAPI.DTO.Entities;
+using BloggerAPI.DTO.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,12 @@ namespace BloggerAPI.Interfaces
     public interface ICommentService
     {
         Task<IEnumerable<Comment>> GetComments();
-        Task<IEnumerable<Comment>> GetCommentById();
-        Task<IEnumerable<Comment>> GetCommentsByPostId();
-        Task<IEnumerable<Comment>> GetCommentsByUserId();
-        Task<Comment> Add(Comment comment);
-
-        Task<Comment> Update(Comment comment);
+        Task<Comment> GetCommentById(int commentId);
+        Task<IEnumerable<Comment>> GetCommentsByPostId(int postId);
+        Task<IEnumerable<Comment>> GetCommentsByUserId(int userId);
+        Task<Comment> Add(CommentOnType commentOn, Comment comment);
+        Task<Comment> Update(CommentOnType commentOn,Comment comment);
         Task<bool> Delete(Comment comment);
+        bool CanEdit(Comment comment, User user);
     }
 }

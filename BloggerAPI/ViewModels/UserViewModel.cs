@@ -15,6 +15,6 @@ namespace BloggerAPI.ViewModels
         public string Password { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public DateTime LastModified { get; set; }
+        public DateTime? LastModified { get; set; }
     }
 }

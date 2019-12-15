@@ -30,6 +30,11 @@ namespace BloggerAPI.Services
             return post;
         }
 
+        public bool CanEdit(Post post, User user)
+        {
+            return user.Id == post.CreatedBy;
+        }
+
         public async Task<bool> Delete(Post post)
         {
 

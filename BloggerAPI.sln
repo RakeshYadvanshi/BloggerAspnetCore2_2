@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BloggerAPI.DTO", "BloggerAP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BloggerAPI.Data", "BloggerAPI.Data\BloggerAPI.Data.csproj", "{1AD7DBC6-EABD-4F53-9770-4DDA4EE7B57D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BloggerAPI.IntegrationTests", "BloggerAPI.IntegrationTests\BloggerAPI.IntegrationTests.csproj", "{5A7B8018-A7CD-4311-BE95-6495A4CD6726}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BloggerAPI.Services", "BloggerAPI.Services\BloggerAPI.Services.csproj", "{08E5C090-A4F6-4D10-B0B3-CDC07A034A18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{1AD7DBC6-EABD-4F53-9770-4DDA4EE7B57D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AD7DBC6-EABD-4F53-9770-4DDA4EE7B57D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AD7DBC6-EABD-4F53-9770-4DDA4EE7B57D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A7B8018-A7CD-4311-BE95-6495A4CD6726}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A7B8018-A7CD-4311-BE95-6495A4CD6726}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A7B8018-A7CD-4311-BE95-6495A4CD6726}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A7B8018-A7CD-4311-BE95-6495A4CD6726}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08E5C090-A4F6-4D10-B0B3-CDC07A034A18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08E5C090-A4F6-4D10-B0B3-CDC07A034A18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08E5C090-A4F6-4D10-B0B3-CDC07A034A18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08E5C090-A4F6-4D10-B0B3-CDC07A034A18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

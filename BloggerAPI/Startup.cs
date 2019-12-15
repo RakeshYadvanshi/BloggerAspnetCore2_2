@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using StructureMap;
 using AutoMapper;
+using BloggerAPI.Interfaces;
+using BloggerAPI.Services;
 
 namespace BloggerAPI
 {
@@ -63,16 +65,11 @@ namespace BloggerAPI
             {
                 config.Scan(_ =>
                 {
-                    _.AssemblyContainingType(typeof(Startup));
+                    _.AssemblyContainingType(typeof(IUserService));
+                    _.AssemblyContainingType(typeof(UserService));
+                    _.AssemblyContainingType(typeof(Startup));// register services only startup class project
                     _.WithDefaultConventions();
-                    //_.AddAllTypesOf<IGamingService>();
-                    //_.ConnectImplementationsToTypesClosing(typeof(IVlidtr<>));
-
-
                 });
-                //config.For(typeof(IVlidtr<>)).Add(typeof(DfltVlidtr<>));
-
-                //config.For(typeof(ILeaderboard<>)).Use(typeof(Leaderboard<>));
                 config.For<BloggerDbContext>().Use<BloggerDbContext>().Singleton();// to make life of in Memory data till Site running
                 config.Populate(services); // use to register all the framework services to structuremap 
             });

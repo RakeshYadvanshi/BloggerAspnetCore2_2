@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BloggerAPI.Data\BloggerAPI.Data.csproj" />
     <ProjectReference Include="..\BloggerAPI.Interfaces\BloggerAPI.Interfaces.csproj" />
+    <ProjectReference Include="..\BloggerAPI.Services\BloggerAPI.Services.csproj" />
   </ItemGroup>
 
 </Project>

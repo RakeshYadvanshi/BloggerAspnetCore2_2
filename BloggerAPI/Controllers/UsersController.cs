@@ -13,8 +13,8 @@ namespace BloggerAPI.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private IUserService _userService;
-        private IMapper _mapper;
+        private readonly IUserService _userService;
+        private readonly IMapper _mapper;
         public UsersController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
@@ -30,6 +30,8 @@ namespace BloggerAPI.Controllers
         public async Task<IActionResult> Post(UserViewModel viewModel)
         {
             var user = _mapper.Map(viewModel, new User());
+            user.CreatedDate = DateTime.Now;
+            user.LastModified = null;
             if (await _userService.Add(user) != null)
             {
                 return Created("", _mapper.Map(user, viewModel));
@@ -52,13 +54,14 @@ namespace BloggerAPI.Controllers
                 if (oldUser != null)
                 {
                     _mapper.Map(viewModel, oldUser);
+                    oldUser.LastModified = DateTime.Now;
                     await _userService.Update(oldUser);
                     return Ok(viewModel);
                 }
                 else
                 {
                     return this.StatusCode(StatusCodes.Status404NotFound,
-                           "user not fount in our system!!");
+                           "user not found in our system!!");
                 }
             }
             catch (Exception)
@@ -90,7 +93,7 @@ namespace BloggerAPI.Controllers
             else
             {
                 return this.StatusCode(StatusCodes.Status404NotFound,
-                       "user not fount in our system!!");
+                       "user not found in our system!!");
             }
         }
     }
