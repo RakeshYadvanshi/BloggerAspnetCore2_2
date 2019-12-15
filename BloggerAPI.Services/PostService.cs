@@ -12,8 +12,8 @@ namespace BloggerAPI.Services
 {
     public class PostService : IPostService, IDisposable
     {
-        private BloggerDbContext _dbContext;
-        private IMapper _mapper;
+        private readonly BloggerDbContext _dbContext;
+        private readonly IMapper _mapper;
 
         public PostService(BloggerDbContext dbContext, IMapper mapper)
         {
@@ -25,9 +25,19 @@ namespace BloggerAPI.Services
 
         public async Task<Post> Add(Post post)
         {
-            _dbContext.Posts.Add(post);
-            await _dbContext.SaveChangesAsync();
-            return post;
+            if (post != null)
+            {
+                _dbContext.Posts.Add(post);
+                await _dbContext.SaveChangesAsync();
+                return post;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(post));
+            }
+
+
+            
         }
 
         public bool CanEdit(Post post, User user)

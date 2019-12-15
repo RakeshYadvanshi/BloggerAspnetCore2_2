@@ -13,10 +13,10 @@ namespace BloggerAPI.Services
 {
     public class CommentService : ICommentService, IDisposable
     {
-        private BloggerDbContext _dbContext;
-        private IMapper _mapper;
-        private IPostService _postService;
-        private IUserService _userService;
+        private readonly BloggerDbContext _dbContext;
+        private readonly IMapper _mapper;
+        private readonly IPostService _postService;
+        private readonly IUserService _userService;
         public CommentService(BloggerDbContext dbContext, IMapper mapper,
                 IPostService postService, IUserService userService)
         {
@@ -33,9 +33,18 @@ namespace BloggerAPI.Services
                     $"{commentOn.ToString()} does not exists in our system!!");
             }
 
-            _dbContext.Comments.Add(comment);
-            await _dbContext.SaveChangesAsync();
-            return comment;
+            if (comment != null)
+            {
+                _dbContext.Comments.Add(comment);
+                await _dbContext.SaveChangesAsync();
+                return comment;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(comment));
+            }
+
+
         }
 
         public bool CanEdit(Comment comment, User user)

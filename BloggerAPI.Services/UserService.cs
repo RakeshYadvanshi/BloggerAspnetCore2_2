@@ -21,11 +21,19 @@ namespace BloggerAPI.Services
             _mapper = mapper;
         }
 
-        public async Task<User> Add(User User)
+        public async Task<User> Add(User user)
         {
-            _dbContext.Users.Add(User);
-            await _dbContext.SaveChangesAsync();
-            return User;
+            if (user != null)
+            {
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
+                return user;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
         }
 
         public async Task<bool> Delete(User user)

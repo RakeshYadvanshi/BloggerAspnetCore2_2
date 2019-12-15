@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using BloggerAPI.Data;
 using BloggerAPI.DTO.Entities;
 using BloggerAPI.DTO.Enum;
+using BloggerAPI.DTO.ViewModels;
 using BloggerAPI.Interfaces;
-using BloggerAPI.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
