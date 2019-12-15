@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace BloggerAPI.DTO.Entities
+namespace BloggerAPI.ViewModels
 {
-    public class Post
+    public class PostViewModel
     {
         public int Id { get; set; }
         public string PostTitle { get; set; }
@@ -12,6 +14,7 @@ namespace BloggerAPI.DTO.Entities
         public string Description { get; set; }
         public int CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
+
         public DateTime LastModified { get; set; }
     }
 }

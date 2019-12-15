@@ -1,43 +1,58 @@
-﻿using BloggerAPI.DTO.Entities;
+﻿using BloggerAPI.Data;
+using BloggerAPI.DTO.Entities;
 using BloggerAPI.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BloggerAPI.Services
 {
-    public class CommentService : ICommentService
+    public class CommentService : ICommentService, IDisposable
     {
-        public Comment Add(Comment comment)
+        private BloggerDbContext _dbContext;
+        public CommentService(BloggerDbContext dbContext)
+        {
+            _dbContext = dbContext;
+
+        }
+        public async Task<Comment> Add(Comment comment)
+        {
+            _dbContext.Comments.Add(comment);
+            await _dbContext.SaveChangesAsync();
+            return comment;
+        }
+
+        public Task<bool> Delete(Comment comment)
         {
             throw new NotImplementedException();
         }
 
-        public bool Delete(Comment comment)
+        public void Dispose()
+        {
+            _dbContext.Dispose();
+        }
+
+        public Task<IEnumerable<Comment>> GetCommentById()
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Comment> GetCommentById()
+        public Task<IEnumerable<Comment>> GetComments()
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Comment> GetComments()
+        public Task<IEnumerable<Comment>> GetCommentsByPostId()
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Comment> GetCommentsByPostId()
+        public Task<IEnumerable<Comment>> GetCommentsByUserId()
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Comment> GetCommentsByUserId()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Comment Update(Comment comment)
+        public Task<Comment> Update(Comment comment)
         {
             throw new NotImplementedException();
         }

@@ -9,13 +9,13 @@ namespace BloggerAPI.Interfaces
 {
     public interface ICommentService
     {
-        IEnumerable<Comment> GetComments();
-        IEnumerable<Comment> GetCommentById();
-        IEnumerable<Comment> GetCommentsByPostId();
-        IEnumerable<Comment> GetCommentsByUserId();
-        Comment Add(Comment comment);
+        Task<IEnumerable<Comment>> GetComments();
+        Task<IEnumerable<Comment>> GetCommentById();
+        Task<IEnumerable<Comment>> GetCommentsByPostId();
+        Task<IEnumerable<Comment>> GetCommentsByUserId();
+        Task<Comment> Add(Comment comment);
 
-        Comment Update(Comment comment);
-        bool Delete(Comment comment);
+        Task<Comment> Update(Comment comment);
+        Task<bool> Delete(Comment comment);
     }
 }

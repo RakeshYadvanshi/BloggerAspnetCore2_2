@@ -9,10 +9,10 @@ namespace BloggerAPI.Interfaces
 {
     public interface IUserService
     {
-        IEnumerable<User> GetUsers();
-        IEnumerable<User> GetUserById();
-        User Add(User User);
-        User Update(User User);
-        bool Delete(User User);
+        Task<IEnumerable<User>> GetUsers();
+        Task<User> GetUserById(int userId);
+        Task<User> Add(User User);
+        Task<User> Update(User User);
+        Task<bool> Delete(User User);
     }
 }

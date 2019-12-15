@@ -9,11 +9,11 @@ namespace BloggerAPI.Interfaces
 {
     public interface IPostService
     {
-        IEnumerable<Post> GetPosts();
-        IEnumerable<Post> GetPostById();
-        IEnumerable<Post> GetPostsByUserId();
-        Post Add(Post Post);
-        Post Update(Post Post);
-        bool Delete(Post Post);
+        Task<IEnumerable<Post>> GetPosts();
+        Task<Post> GetPostById(int postId);
+        Task<IEnumerable<Post>> GetPostsByUserId(int userId);
+        Task<Post> Add(Post Post);
+        Task<Post> Update(Post Post);
+        Task<bool> Delete(Post Post);
     }
 }

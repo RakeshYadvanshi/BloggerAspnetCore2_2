@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using BloggerAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
-using BloggerAPI.Interfaces;
-using BloggerAPI.Services;
 using StructureMap;
 using AutoMapper;
 
