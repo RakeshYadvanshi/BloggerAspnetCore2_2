@@ -4,20 +4,20 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using BloggerAPI.Interfaces;
 
 namespace BloggerAPI.Tests
 {
     public static class Helper
     {
-        public static BloggerDbContext DbContext
+        public static IBloggerDbContext DbContext
         {
             get
             {
-                DbContextOptions<BloggerDbContext> options;
                 var builder = new DbContextOptionsBuilder<BloggerDbContext>();
                 builder.UseInMemoryDatabase("Tests");
-                options = builder.Options;
-                BloggerDbContext dbContext = new BloggerDbContext(options);
+                var options = builder.Options;
+                var dbContext = new BloggerDbContext(options);
                 dbContext.Database.EnsureDeleted();
                 dbContext.Database.EnsureCreated();
 

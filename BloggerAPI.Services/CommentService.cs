@@ -13,11 +13,11 @@ namespace BloggerAPI.Services
 {
     public class CommentService : ICommentService, IDisposable
     {
-        private readonly BloggerDbContext _dbContext;
+        private readonly IBloggerDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IPostService _postService;
         private readonly IUserService _userService;
-        public CommentService(BloggerDbContext dbContext, IMapper mapper,
+        public CommentService(IBloggerDbContext dbContext, IMapper mapper,
                 IPostService postService, IUserService userService)
         {
             _dbContext = dbContext;

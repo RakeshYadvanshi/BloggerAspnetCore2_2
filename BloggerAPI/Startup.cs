@@ -67,6 +67,7 @@ namespace BloggerAPI
                 {
                     _.AssemblyContainingType(typeof(IUserService));
                     _.AssemblyContainingType(typeof(UserService));
+                    _.AssemblyContainingType(typeof(BloggerDbContext));
                     _.AssemblyContainingType(typeof(Startup));// register services only startup class project
                     _.WithDefaultConventions();
                 });

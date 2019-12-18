@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BloggerAPI.DTO\BloggerAPI.DTO.csproj" />
+    <ProjectReference Include="..\BloggerAPI.Interfaces\BloggerAPI.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>

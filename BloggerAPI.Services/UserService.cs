@@ -12,10 +12,10 @@ namespace BloggerAPI.Services
 {
     public class UserService : IUserService, IDisposable
     {
-        private BloggerDbContext _dbContext;
-        private IMapper _mapper;
+        private readonly IBloggerDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public UserService(BloggerDbContext dbContext, IMapper mapper)
+        public UserService(IBloggerDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;

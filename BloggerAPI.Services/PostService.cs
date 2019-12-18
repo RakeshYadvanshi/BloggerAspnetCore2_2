@@ -12,10 +12,10 @@ namespace BloggerAPI.Services
 {
     public class PostService : IPostService, IDisposable
     {
-        private readonly BloggerDbContext _dbContext;
+        private readonly IBloggerDbContext _dbContext;
         private readonly IMapper _mapper;
 
-        public PostService(BloggerDbContext dbContext, IMapper mapper)
+        public PostService(IBloggerDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;

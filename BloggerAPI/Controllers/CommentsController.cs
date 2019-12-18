@@ -28,23 +28,31 @@ namespace BloggerAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(string entityType, int entityId)
         {
-            if (Enum.TryParse<CommentOnType>(entityType, out var commentOn))
+
+            try
             {
-                switch (commentOn)
+                if (Enum.TryParse<CommentOnType>(entityType, out var commentOn))
                 {
-                    case CommentOnType.Posts:
-                        return Ok(_mapper.Map<Comment[]>(await _commentService.GetCommentsByPostId(entityId)));
-                    case CommentOnType.Users:
-                        return Ok(_mapper
-                     .Map<Comment[]>(await _commentService
-                                             .GetCommentsByUserId(entityId)));
-                    default:
-                        return this.StatusCode(StatusCodes.Status501NotImplemented, $" {commentOn.ToString()} does not support comments");
+                    switch (commentOn)
+                    {
+                        case CommentOnType.Posts:
+                            return Ok(_mapper.Map<Comment[]>(await _commentService.GetCommentsByPostId(entityId)));
+                        case CommentOnType.Users:
+                            return Ok(_mapper
+                                .Map<Comment[]>(await _commentService
+                                    .GetCommentsByUserId(entityId)));
+                        default:
+                            return this.StatusCode(StatusCodes.Status501NotImplemented, $" {commentOn.ToString()} does not support comments");
+                    }
+                }
+                else
+                {
+                    return NotFound();
                 }
             }
-            else
+            catch (Exception e)
             {
-                return NotFound();
+                return this.StatusCode(StatusCodes.Status501NotImplemented, e.Message);
             }
         }
 
@@ -52,39 +60,46 @@ namespace BloggerAPI.Controllers
         [HttpPost]
         [Route("{userId:int}")]
         public async Task<IActionResult> Post(string entityType, int entityId,
-            CommentViewModel viewModel,int userId)
+            CommentViewModel viewModel, int userId)
         {
 
-            
-            if (Enum.TryParse<CommentOnType>(entityType, out var commentOn))
+            try
             {
-                var user = await _userService.GetUserById(userId);
-                if (user == null)
-                {
-                    return this.StatusCode(StatusCodes.Status400BadRequest,
-                              $"User does not exists in our system!!");
-                }
 
-                var comment = _mapper.Map(viewModel, new Comment());
-                comment.CreatedDate = DateTime.Now;
-                comment.LastModified = null;
-                comment.CommentOn = commentOn.ToString();
-                comment.CommentOnId = entityId;
-                comment.CreatedBy = userId;
-                comment = await _commentService.Add(commentOn,comment); // get updated post id
-                if (comment != null)
+                if (Enum.TryParse<CommentOnType>(entityType, out var commentOn))
                 {
-                    return Created("", _mapper.Map(comment, viewModel));
+                    var user = await _userService.GetUserById(userId);
+                    if (user == null)
+                    {
+                        return this.StatusCode(StatusCodes.Status400BadRequest,
+                            $"User does not exists in our system!!");
+                    }
+
+                    var comment = _mapper.Map(viewModel, new Comment());
+                    comment.CreatedDate = DateTime.Now;
+                    comment.LastModified = null;
+                    comment.CommentOn = commentOn.ToString();
+                    comment.CommentOnId = entityId;
+                    comment.CreatedBy = userId;
+                    comment = await _commentService.Add(commentOn, comment); // get updated post id
+                    if (comment != null)
+                    {
+                        return Created("", _mapper.Map(comment, viewModel));
+                    }
+                    else
+                    {
+                        return this.StatusCode(StatusCodes.Status500InternalServerError,
+                            "user not saved!! try again or concern developer");
+                    }
                 }
                 else
                 {
-                    return this.StatusCode(StatusCodes.Status500InternalServerError,
-                        "user not saved!! try again or concern developer");
+                    return NotFound();
                 }
             }
-            else
+            catch (Exception e)
             {
-                return NotFound();
+                return this.StatusCode(StatusCodes.Status501NotImplemented, e.Message);
             }
         }
 
@@ -116,7 +131,7 @@ namespace BloggerAPI.Controllers
                                    $"this user {user.FirstName} {user.LastName} can't edit comment!!");
                         }
                         // overriding createdby send from client from accidently update exception can be thrown instead
-                        viewModel.CreatedBy = oldComment.CreatedBy; 
+                        viewModel.CreatedBy = oldComment.CreatedBy;
 
                         _mapper.Map(viewModel, oldComment);
                         oldComment.CommentOnId = entityId;
@@ -136,11 +151,10 @@ namespace BloggerAPI.Controllers
                     return NotFound();
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 //set up logger
-                return this.StatusCode(StatusCodes.Status500InternalServerError,
-                            "comment not saved!! try again or concern developer");
+                return this.StatusCode(StatusCodes.Status501NotImplemented, e.Message);
             }
         }
 
@@ -151,50 +165,57 @@ namespace BloggerAPI.Controllers
         [Route("{userId:int}/{commentId:int}")]
         public async Task<IActionResult> Delete(string entityType, int entityId, int userId, int commentId)
         {
-            if (Enum.TryParse<CommentOnType>(entityType, out var commentOn))
+            try
             {
+                if (Enum.TryParse<CommentOnType>(entityType, out var commentOn))
+                {
 
-                var oldComment = await _commentService.GetCommentById(commentId);
-                var user = await _userService.GetUserById(userId);
+                    var oldComment = await _commentService.GetCommentById(commentId);
+                    var user = await _userService.GetUserById(userId);
 
-                if (oldComment.CommentOnId != entityId)
-                {
-                    return this.StatusCode(StatusCodes.Status400BadRequest,
-                             "comment can't be moved between entities !!");
-                }
-
-                if (oldComment.CommentOn != commentOn.ToString())
-                {
-                    return this.StatusCode(StatusCodes.Status400BadRequest,
-                             "comment can't be moved between entities !!");
-                }
-                if (!_commentService.CanEdit(oldComment, user))
-                {
-                    return this.StatusCode(StatusCodes.Status400BadRequest,
-                             "this user can't delete comment !!");
-                }
-                if (oldComment != null)
-                {
-                    if (await _commentService.Delete(oldComment))
+                    if (oldComment.CommentOnId != entityId)
                     {
-                        return Ok();
+                        return this.StatusCode(StatusCodes.Status400BadRequest,
+                            "comment can't be moved between entities !!");
+                    }
+
+                    if (oldComment.CommentOn != commentOn.ToString())
+                    {
+                        return this.StatusCode(StatusCodes.Status400BadRequest,
+                            "comment can't be moved between entities !!");
+                    }
+                    if (!_commentService.CanEdit(oldComment, user))
+                    {
+                        return this.StatusCode(StatusCodes.Status400BadRequest,
+                            "this user can't delete comment !!");
+                    }
+                    if (oldComment != null)
+                    {
+                        if (await _commentService.Delete(oldComment))
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return this.StatusCode(StatusCodes.Status500InternalServerError,
+                                "post not deleted!! try again or concern developer");
+                        }
                     }
                     else
                     {
-                        return this.StatusCode(StatusCodes.Status500InternalServerError,
-                             "post not deleted!! try again or concern developer");
+                        return this.StatusCode(StatusCodes.Status404NotFound,
+                            "post not found in our system!!");
                     }
+
                 }
                 else
                 {
-                    return this.StatusCode(StatusCodes.Status404NotFound,
-                           "post not found in our system!!");
+                    return NotFound();
                 }
-
             }
-            else
+            catch (Exception e)
             {
-                return NotFound();
+                return this.StatusCode(StatusCodes.Status501NotImplemented, e.Message);
             }
 
         }
