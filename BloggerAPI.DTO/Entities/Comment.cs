@@ -14,5 +14,21 @@ namespace BloggerAPI.DTO.Entities
         public DateTime? LastModified { get; set; }
 
         public int CreatedBy { get; set; }
+
+        public Comment(string commentText, int commentOnId, string commentOn, DateTime createdDate, DateTime? lastModified, int createdBy)
+        {
+            CommentText = commentText;
+            CommentOnId = commentOnId;
+            CommentOn = commentOn;
+            CreatedDate = createdDate;
+            LastModified = lastModified;
+            CreatedBy = createdBy;
+        }
+
+        public Comment()
+        {
+            
+        }
+        
     }
 }

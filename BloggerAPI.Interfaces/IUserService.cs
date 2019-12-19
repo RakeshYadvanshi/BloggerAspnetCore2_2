@@ -11,8 +11,8 @@ namespace BloggerAPI.Interfaces
     {
         Task<IEnumerable<User>> GetUsers();
         Task<User> GetUserById(int userId);
-        Task<User> Add(User User);
-        Task<User> Update(User User);
-        Task<bool> Delete(User User);
+        Task<User> Add(User user);
+        Task<User> Update(User user);
+        Task<bool> Delete(User user);
     }
 }

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BloggerAPI.Services
 {
-    public class CommentService : ICommentService, IDisposable
+    public class CommentService : ICommentService
     {
         private readonly IBloggerDbContext _dbContext;
         private readonly IMapper _mapper;
@@ -27,24 +27,18 @@ namespace BloggerAPI.Services
         }
         public async Task<Comment> Add(CommentOnType commentOn, Comment comment)
         {
+
+            if (comment == null) throw new ArgumentNullException(nameof(Comment));
+
             if (!await IsCreatedByExistsByType(comment.CommentOnId, commentOn))
             {
                 throw new InvalidOperationException(
                     $"{commentOn.ToString()} does not exists in our system!!");
             }
 
-            if (comment != null)
-            {
-                _dbContext.Comments.Add(comment);
-                await _dbContext.SaveChangesAsync();
-                return comment;
-            }
-            else
-            {
-                throw new ArgumentNullException(nameof(comment));
-            }
-
-
+            _dbContext.Comments.Add(comment);
+            await _dbContext.SaveChangesAsync();
+            return comment;
         }
 
         public bool CanEdit(Comment comment, User user)
@@ -80,10 +74,6 @@ namespace BloggerAPI.Services
             return false;
         }
 
-        public void Dispose()
-        {
-            _dbContext.Dispose();
-        }
 
         public async Task<Comment> GetCommentById(int commentId)
         {
@@ -98,17 +88,17 @@ namespace BloggerAPI.Services
 
         public async Task<IEnumerable<Comment>> GetCommentsByPostId(int postId)
         {
-            return await GetCommetsByType(postId, CommentOnType.Posts);
+            return await GetCommentsByType(postId, CommentOnType.Posts);
         }
 
-        private async Task<IEnumerable<Comment>> GetCommetsByType(int postId, CommentOnType type)
+        private async Task<IEnumerable<Comment>> GetCommentsByType(int postId, CommentOnType type)
         {
             return await _dbContext.Comments.Where(_ => _.CommentOn == type.ToString() && _.CommentOnId == postId).ToListAsync();
         }
 
         public async Task<IEnumerable<Comment>> GetCommentsByUserId(int userId)
         {
-            return await GetCommetsByType(userId, CommentOnType.Users);
+            return await GetCommentsByType(userId, CommentOnType.Users);
         }
 
         public async Task<Comment> Update(CommentOnType commentOn, Comment comment)
@@ -139,7 +129,7 @@ namespace BloggerAPI.Services
                 }
                 else
                 {
-                    throw new NotSupportedException("user does not exists in our system");
+                    throw new NotSupportedException($"{nameof(comment)} does not exists in our system");
 
                 }
             }
@@ -151,16 +141,16 @@ namespace BloggerAPI.Services
         }
 
 
-        private async Task<bool> IsCreatedByExistsByType(int Id, CommentOnType commentOn)
+        private async Task<bool> IsCreatedByExistsByType(int id, CommentOnType commentOn)
         {
 
             switch (commentOn)
             {
                 case CommentOnType.Posts:
-                    var post = await _postService.GetPostById(Id);
+                    var post = await _postService.GetPostById(id);
                     return post != null;
                 case CommentOnType.Users:
-                    var user = await _userService.GetUserById(Id);
+                    var user = await _userService.GetUserById(id);
                     return user != null;
                 default:
                     throw new NotImplementedException(

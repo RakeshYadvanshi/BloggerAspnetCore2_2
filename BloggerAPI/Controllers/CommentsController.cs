@@ -130,7 +130,7 @@ namespace BloggerAPI.Controllers
                             return this.StatusCode(StatusCodes.Status203NonAuthoritative,
                                    $"this user {user.FirstName} {user.LastName} can't edit comment!!");
                         }
-                        // overriding createdby send from client from accidently update exception can be thrown instead
+                        // overriding created by send from client from accidentally update exception can be thrown instead
                         viewModel.CreatedBy = oldComment.CreatedBy;
 
                         _mapper.Map(viewModel, oldComment);

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BloggerAPI.Services
 {
-    public class UserService : IUserService, IDisposable
+    public class UserService : IUserService
     {
         private readonly IBloggerDbContext _dbContext;
         private readonly IMapper _mapper;
@@ -29,43 +29,30 @@ namespace BloggerAPI.Services
                 await _dbContext.SaveChangesAsync();
                 return user;
             }
-            else
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
+
+            throw new ArgumentNullException(nameof(user));
 
         }
 
         public async Task<bool> Delete(User user)
         {
-            if (user != null)
-            {
-                var dbUser = _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
-                if (dbUser != null)
-                {
-                    _dbContext.Users.Remove(user);
-                    if (await _dbContext.SaveChangesAsync() > 0)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    throw new NotSupportedException("user does not exists in our system");
+            if (user == null)  throw new ArgumentNullException(nameof(user));
 
-                }
-            }
-            else
+
+            var dbUser = _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
+            if (dbUser == null)
+                throw new NotSupportedException("user does not exists in our system");
+
+
+            _dbContext.Users.Remove(user);
+            if (await _dbContext.SaveChangesAsync() > 0)
             {
-                throw new ArgumentNullException(nameof(user));
+                return true;
             }
+
             return false;
         }
 
-        public void Dispose()
-        {
-            _dbContext.Dispose();
-        }
 
         public async Task<User> GetUserById(int userId)
         {
@@ -79,31 +66,21 @@ namespace BloggerAPI.Services
 
         public async Task<User> Update(User user)
         {
-            if (user != null)
-            {
-                var dbUser = await _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
-                if (dbUser != null)
-                {
-                    _mapper.Map(user, dbUser);
-                    if (await _dbContext.SaveChangesAsync() > 0)
-                    {
-                        return dbUser;
-                    }
-                    else
-                    {
-                        throw new Exception("Unexpected Exception !! concern developer");
-                    }
-                }
-                else
-                {
-                    throw new NotSupportedException("user does not exists in our system");
+            if (user == null) throw new ArgumentNullException(nameof(user));
 
-                }
-            }
-            else
+            var dbUser = await _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
+            if (dbUser != null)
             {
-                throw new ArgumentNullException(nameof(user));
+                _mapper.Map(user, dbUser);
+                if (await _dbContext.SaveChangesAsync() > 0)
+                {
+                    return dbUser;
+                }
+
+                throw new Exception("Unexpected Exception !! concern developer");
             }
+
+            throw new NotSupportedException("user does not exists in our system");
 
         }
     }

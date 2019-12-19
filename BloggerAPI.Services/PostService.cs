@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BloggerAPI.Services
 {
-    public class PostService : IPostService, IDisposable
+    public class PostService : IPostService
     {
         private readonly IBloggerDbContext _dbContext;
         private readonly IMapper _mapper;
@@ -25,19 +25,11 @@ namespace BloggerAPI.Services
 
         public async Task<Post> Add(Post post)
         {
-            if (post != null)
-            {
-                _dbContext.Posts.Add(post);
-                await _dbContext.SaveChangesAsync();
-                return post;
-            }
-            else
-            {
-                throw new ArgumentNullException(nameof(post));
-            }
+            if (post == null) throw new ArgumentNullException(nameof(post));
 
-
-            
+            _dbContext.Posts.Add(post);
+            await _dbContext.SaveChangesAsync();
+            return post;
         }
 
         public bool CanEdit(Post post, User user)
@@ -74,10 +66,6 @@ namespace BloggerAPI.Services
         }
 
 
-        public void Dispose()
-        {
-            _dbContext.Dispose();
-        }
 
         public async Task<Post> GetPostById(int postId)
         {
@@ -98,31 +86,18 @@ namespace BloggerAPI.Services
 
         public async Task<Post> Update(Post post)
         {
-            if (post != null)
-            {
-                var dbUser = await _dbContext.Posts.Where(x => x.Id == post.Id).FirstOrDefaultAsync();
-                if (dbUser != null)
-                {
-                    _mapper.Map(post, dbUser);
-                    if (await _dbContext.SaveChangesAsync() > 0)
-                    {
-                        return dbUser;
-                    }
-                    else
-                    {
-                        throw new Exception("Unexpected Exception !! concern developer");
-                    }
-                }
-                else
-                {
-                    throw new NotSupportedException("user does not exists in our system");
+            if (post == null) throw new ArgumentNullException(nameof(post));
 
-                }
-            }
-            else
+            var dbUser = await _dbContext.Posts.Where(x => x.Id == post.Id).FirstOrDefaultAsync();
+            if (dbUser == null) throw new NotSupportedException("user does not exists in our system");
+
+            _mapper.Map(post, dbUser);
+            if (await _dbContext.SaveChangesAsync() > 0)
             {
-                throw new ArgumentNullException(nameof(post));
+                return dbUser;
             }
+
+            throw new Exception("Unexpected Exception !! concern developer");
 
         }
     }
