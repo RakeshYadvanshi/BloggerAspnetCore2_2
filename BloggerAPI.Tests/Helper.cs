@@ -16,13 +16,13 @@ namespace BloggerAPI.Tests
             get
             {
                 var builder = new DbContextOptionsBuilder<BloggerDbContext>();
-                builder.UseInMemoryDatabase("Tests");
+                builder.UseInMemoryDatabase($"Tests{Guid.NewGuid()}");
                 var options = builder.Options;
                 var dbContext = new BloggerDbContext(options);
                 dbContext.Database.EnsureDeleted();
                 dbContext.Database.EnsureCreated();
 
-                return dbContext; 
+                return dbContext;
             }
         }
 

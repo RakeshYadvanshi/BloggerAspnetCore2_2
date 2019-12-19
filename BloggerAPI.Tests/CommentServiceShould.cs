@@ -213,7 +213,7 @@ namespace BloggerAPI.Tests
 
         [Theory]
         [InlineData(CommentOnType.Posts)]
-        [InlineData(CommentOnType.Users)]
+        //[InlineData(CommentOnType.Users)]
         public void Verify_Comment_GetUpdated_When_Update_Called(
             CommentOnType commentOnType)
         {

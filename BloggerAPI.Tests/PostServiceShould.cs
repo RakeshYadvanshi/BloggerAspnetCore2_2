@@ -148,7 +148,7 @@ namespace BloggerAPI.Tests
         }
 
         [Fact]
-        public void Verify_Give_Post_When_Update_Called_With_ExistingPost()
+        public void Verify__Post_Get_Updated_When_Update_Called_With_ExistingPost()
         {
             var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now); ;
             var post = _postService.Add(fakePost).Result;
