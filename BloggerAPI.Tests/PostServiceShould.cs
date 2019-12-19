@@ -21,7 +21,7 @@ namespace BloggerAPI.Tests
         {
             _outputHelper = outputHelper;
             _postService = new PostService(Helper.DbContext, Helper.Mapper);
-            _userService=new UserService(Helper.DbContext,Helper.Mapper);
+            _userService = new UserService(Helper.DbContext, Helper.Mapper);
             fakeUser = _userService.Add(new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now)).Result;
         }
 
@@ -137,8 +137,13 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingPost()
         {
-            Assert.ThrowsAsync<NotSupportedException>(
-                async () => { await _postService.Update(It.IsAny<Post>()); });
+            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now); ;
+            fakePost.Id = 20;
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () => await _postService.Update(fakePost));
+
+            Assert.Contains("exists in our system", exception.Result.Message);
+
 
         }
 
@@ -158,26 +163,26 @@ namespace BloggerAPI.Tests
         }
 
 
-        [Fact]
-        public void Verify_Throw_NotSupportedException_When_Update_Called_With_ExistingUser_And_Data_not_Saved()
-        {
-            var dbContextMock = new Mock<IBloggerDbContext>();
+        //[Fact]
+        //public void Verify_Throw_NotSupportedException_When_Update_Called_With_ExistingUser_And_Data_not_Saved()
+        //{
+        //    var dbContextMock = new Mock<IBloggerDbContext>();
 
-            dbContextMock.Setup(x
-                            => x.SaveChangesAsync(default)).ReturnsAsync(0);
+        //    dbContextMock.Setup(x
+        //                    => x.SaveChangesAsync(default)).ReturnsAsync(0);
 
 
-            Assert.ThrowsAsync<NotSupportedException>(
-                async () =>
-                {
-                    var postMock = new Mock<Post>();
-                    var user = _postService.Add(postMock.Object).Result;
-                    user.PostTitle = "post is modified";
-                    await _postService.Update(user);
+        //    Assert.ThrowsAsync<NotSupportedException>(
+        //        async () =>
+        //        {
+        //            var postMock = new Mock<Post>();
+        //            var user = _postService.Add(postMock.Object).Result;
+        //            user.PostTitle = "post is modified";
+        //            await _postService.Update(user);
 
-                });
+        //        });
 
-        }
+        //}
 
         #endregion
 
@@ -194,9 +199,12 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Delete_Called_With_NonExistingUser()
         {
-            Assert.ThrowsAsync<NotSupportedException>(
-                async () => { await _postService.Delete(It.IsAny<Post>()); });
+            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now); ;
+            fakePost.Id = 20;
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () => await _postService.Delete(fakePost));
 
+            Assert.Contains("exists in our system", exception.Result.Message);
         }
 
         [Fact]

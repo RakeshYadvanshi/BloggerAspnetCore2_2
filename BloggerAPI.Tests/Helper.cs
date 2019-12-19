@@ -3,6 +3,7 @@ using BloggerAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using BloggerAPI.Interfaces;
 
@@ -21,7 +22,7 @@ namespace BloggerAPI.Tests
                 dbContext.Database.EnsureDeleted();
                 dbContext.Database.EnsureCreated();
 
-                return dbContext;
+                return dbContext; 
             }
         }
 

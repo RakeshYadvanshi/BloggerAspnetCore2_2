@@ -44,17 +44,20 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Give_User_When_GetUserById_Called_For_ExistingUser()
         {
-            var userMock = new Mock<User>();
-            var user = _userService.Add(userMock.Object).Result;
+            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
+
+            var userAdded = _userService.Add(user).Result;
 
             var result = _userService.GetUserById(user.Id).Result;
-            Assert.Same(user, result);
+
+            Assert.NotNull(result);
+            Assert.Same( result, userAdded);
 
         }
         [Fact]
         public void Verify_Give_Null_When_GetUserById_Called_For_NonExistingUser()
         {
-            var result = _userService.GetUserById(It.IsAny<int>()).Result;
+            var result = _userService.GetUserById(10).Result;
             Assert.Null(result);
         }
 
@@ -99,9 +102,12 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingUser()
         {
-            Assert.ThrowsAsync<NotSupportedException>(
-                async () => { await _userService.Update(It.IsAny<User>()); });
+            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
 
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                   async () => await _userService.Update(user));
+
+            Assert.Contains("exists in our system", exception.Result.Message);
         }
 
 
@@ -113,7 +119,7 @@ namespace BloggerAPI.Tests
             var fakeUser = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
             _outputHelper.WriteLine(fakeUser.Id.ToString());
             var user = _userService.Add(fakeUser).Result;
-            
+
             //act
             user.FirstName = "user is modified";
             var updatedUser = _userService.Update(user).Result;
@@ -157,8 +163,13 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Delete_Called_With_NonExistingUser()
         {
-            Assert.ThrowsAsync<NotSupportedException>(
-                async () => { await _userService.Delete(It.IsAny<User>()); });
+            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
+            user.Id = 10;
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () => await _userService.Delete(user));
+
+            Assert.Contains("exists in our system", exception.Result.Message);
+
 
         }
 
@@ -180,21 +191,6 @@ namespace BloggerAPI.Tests
             Assert.True(deleteStatus);
             Assert.Null(_userService.GetUserById(userAdded.Id).Result);
         }
-
-        //[Fact]
-        //public void Verify_Give_False_When_Update_Called_With_ExistingUser_And_Data_Not_Deleted()
-        //{
-        //    var dbContextMock = new Mock<IBloggerDbContext>();
-
-        //    dbContextMock.Setup(x => x.SaveChangesAsync(default)).ReturnsAsync(0);
-
-        //    var userMock = new Mock<User>();
-        //    var user = _userService.Add(userMock.Object).Result;
-        //    var deleteStatus = _userService.Delete(user).Result;
-        //    Assert.False(deleteStatus);
-
-
-        //}
 
         #endregion
 

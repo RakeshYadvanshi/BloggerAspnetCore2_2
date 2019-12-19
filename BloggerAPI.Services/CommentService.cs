@@ -32,7 +32,7 @@ namespace BloggerAPI.Services
 
             if (!await IsCreatedByExistsByType(comment.CommentOnId, commentOn))
             {
-                throw new InvalidOperationException(
+                throw new NotSupportedException(
                     $"{commentOn.ToString()} does not exists in our system!!");
             }
 
@@ -56,10 +56,8 @@ namespace BloggerAPI.Services
                 if (dbPost != null)
                 {
                     _dbContext.Comments.Remove(dbPost);
-                    if (await _dbContext.SaveChangesAsync() > 0)
-                    {
-                        return true;
-                    }
+                    await _dbContext.SaveChangesAsync();
+                    return true;
                 }
                 else
                 {
@@ -71,7 +69,6 @@ namespace BloggerAPI.Services
             {
                 throw new ArgumentNullException(nameof(comment));
             }
-            return false;
         }
 
 
@@ -108,7 +105,7 @@ namespace BloggerAPI.Services
 
                 if (!await IsCreatedByExistsByType(comment.CommentOnId, commentOn))
                 {
-                    throw new InvalidOperationException(
+                    throw new NotSupportedException(
                         $"{commentOn.ToString()} does not exists in our system!!");
                 }
 
@@ -118,25 +115,16 @@ namespace BloggerAPI.Services
                 if (dbComment != null)
                 {
                     _mapper.Map(comment, dbComment);
-                    if (await _dbContext.SaveChangesAsync() > 0)
-                    {
-                        return dbComment;
-                    }
-                    else
-                    {
-                        throw new Exception("Unexpected Exception !! concern developer");
-                    }
-                }
-                else
-                {
-                    throw new NotSupportedException($"{nameof(comment)} does not exists in our system");
+                    await _dbContext.SaveChangesAsync();
+                    return dbComment;
 
                 }
+                throw new NotSupportedException($"{nameof(comment)} does not exists in our system");
+
+
             }
-            else
-            {
-                throw new ArgumentNullException(nameof(comment));
-            }
+            throw new ArgumentNullException(nameof(comment));
+
 
         }
 
@@ -144,17 +132,15 @@ namespace BloggerAPI.Services
         private async Task<bool> IsCreatedByExistsByType(int id, CommentOnType commentOn)
         {
 
-            switch (commentOn)
+            if (commentOn == CommentOnType.Posts)
             {
-                case CommentOnType.Posts:
-                    var post = await _postService.GetPostById(id);
-                    return post != null;
-                case CommentOnType.Users:
-                    var user = await _userService.GetUserById(id);
-                    return user != null;
-                default:
-                    throw new NotImplementedException(
-                        $"{commentOn.ToString()}  is not implemented");
+                var post = await _postService.GetPostById(id);
+                return post != null;
+            }
+            else
+            {
+                var user = await _userService.GetUserById(id);
+                return user != null;
             }
         }
     }

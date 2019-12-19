@@ -39,30 +39,16 @@ namespace BloggerAPI.Services
 
         public async Task<bool> Delete(Post post)
         {
-
-            if (post != null)
+            if (post == null) throw new ArgumentNullException(nameof(Post));
+            var dbPost = await _dbContext.Posts.Where(x => x.Id == post.Id)
+                .FirstOrDefaultAsync();
+            if (dbPost != null)
             {
-                var dbPost = await _dbContext.Posts.Where(x => x.Id == post.Id)
-                             .FirstOrDefaultAsync();
-                if (dbPost != null)
-                {
-                    _dbContext.Posts.Remove(dbPost);
-                    if (await _dbContext.SaveChangesAsync() > 0)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    throw new NotSupportedException("user does not exists in our system");
-
-                }
+                _dbContext.Posts.Remove(dbPost);
+                await _dbContext.SaveChangesAsync();
+                return true;
             }
-            else
-            {
-                throw new ArgumentNullException(nameof(post));
-            }
-            return false;
+            throw new NotSupportedException("user does not exists in our system");
         }
 
 
@@ -86,18 +72,16 @@ namespace BloggerAPI.Services
 
         public async Task<Post> Update(Post post)
         {
-            if (post == null) throw new ArgumentNullException(nameof(post));
+            if (post == null) throw new ArgumentNullException(nameof(Post));
 
             var dbUser = await _dbContext.Posts.Where(x => x.Id == post.Id).FirstOrDefaultAsync();
-            if (dbUser == null) throw new NotSupportedException("user does not exists in our system");
+            if (dbUser == null) 
+                throw new NotSupportedException($"{nameof(Post)} does not exists in our system");
 
             _mapper.Map(post, dbUser);
-            if (await _dbContext.SaveChangesAsync() > 0)
-            {
-                return dbUser;
-            }
+            await _dbContext.SaveChangesAsync();
+            return dbUser;
 
-            throw new Exception("Unexpected Exception !! concern developer");
 
         }
     }

@@ -141,14 +141,28 @@ namespace BloggerAPI.Tests
         [InlineData(CommentOnType.Users)]
         public void Verify_Throw_ArgumentNullException_When_Add_Called_With_Null(CommentOnType commentOnType)
         {
-          var exception = Assert.ThrowsAsync<ArgumentNullException>(nameof(Comment),
-                     async () =>
-                    {
-                        await _commentService.Add(commentOnType, null);
-                    });
+            var exception = Assert.ThrowsAsync<ArgumentNullException>(nameof(Comment),
+                async () => { await _commentService.Add(commentOnType, null); });
 
 
-            Assert.Contains(nameof(Comment),exception.Result.Message);
+            Assert.Contains(nameof(Comment), exception.Result.Message);
+        }
+
+
+        [Theory]
+        [InlineData(CommentOnType.Posts)]
+        [InlineData(CommentOnType.Users)]
+        public void Verify_Throw_NotSupportedException_When_Add_Called_With_NonExistingEntity(
+            CommentOnType commentOnType)
+        {
+            var fakeComment = new Comment(string.Empty, 20,
+                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            fakeComment.Id = 20;
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () => await _commentService.Add(commentOnType, fakeComment));
+
+            Assert.Contains("exists in our system", exception.Result.Message);
+
         }
 
         //#endregion
@@ -167,31 +181,58 @@ namespace BloggerAPI.Tests
         [Theory]
         [InlineData(CommentOnType.Posts)]
         [InlineData(CommentOnType.Users)]
-        public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingEntity(
+        public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingComment(
             CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty, 10,
+            var fakeComment = new Comment(string.Empty,
+                commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
                 commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            fakeComment.Id = 20;
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () => await _commentService.Update(commentOnType, fakeComment));
 
-            Assert.ThrowsAsync<NotSupportedException>(
-                async () => { await _commentService.Update(commentOnType, fakeComment); });
+            Assert.Contains("exists in our system", exception.Result.Message);
+
         }
 
         [Theory]
         [InlineData(CommentOnType.Posts)]
         [InlineData(CommentOnType.Users)]
-        public void Verify_Comment_Get_Update_When_Update_Called_With_ExistingComment(CommentOnType commentOnType)
+        public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingEntity(
+                  CommentOnType commentOnType)
+        {
+            var fakeComment = new Comment(string.Empty, 20,
+                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            fakeComment.Id = 20;
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () => await _commentService.Update(commentOnType, fakeComment));
+
+            Assert.Contains("exists in our system", exception.Result.Message);
+
+        }
+
+        [Theory]
+        [InlineData(CommentOnType.Posts)]
+        [InlineData(CommentOnType.Users)]
+        public void Verify_Comment_GetUpdated_When_Update_Called(
+            CommentOnType commentOnType)
         {
             var fakeComment = new Comment(string.Empty,
                 commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
                 commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
-            var addedComment = _commentService.Add(commentOnType, fakeComment).Result;
-            fakeComment.CommentText = "comment is modified";
-            var updatedComment = _commentService.Update(commentOnType, fakeComment).Result;
 
-            Assert.Equal(updatedComment.CommentText, fakeComment.CommentText);
-            Assert.Equal(updatedComment, fakeComment);
+            var comment = _commentService.Add(commentOnType, fakeComment).Result;
+
+            //act
+            comment.CommentText = "comment is modified";
+            var updatedComment = _commentService.Update(commentOnType,comment).Result;
+
+            //assert
+            Assert.Equal(updatedComment.CommentText, comment.CommentText);
+            Assert.Equal(updatedComment, comment);
+
         }
+
 
         //#endregion
 

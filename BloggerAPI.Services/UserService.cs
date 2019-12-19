@@ -36,21 +36,18 @@ namespace BloggerAPI.Services
 
         public async Task<bool> Delete(User user)
         {
-            if (user == null)  throw new ArgumentNullException(nameof(user));
+            if (user == null) throw new ArgumentNullException(nameof(User));
 
 
-            var dbUser = _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
+            var dbUser = await _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
             if (dbUser == null)
-                throw new NotSupportedException("user does not exists in our system");
+                throw new NotSupportedException($"{nameof(User)} does not exists in our system");
 
 
             _dbContext.Users.Remove(user);
-            if (await _dbContext.SaveChangesAsync() > 0)
-            {
-                return true;
-            }
+            await _dbContext.SaveChangesAsync();
+            return true;
 
-            return false;
         }
 
 
@@ -66,21 +63,17 @@ namespace BloggerAPI.Services
 
         public async Task<User> Update(User user)
         {
-            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (user == null) throw new ArgumentNullException(nameof(User));
 
             var dbUser = await _dbContext.Users.Where(x => x.Id == user.Id).FirstOrDefaultAsync();
             if (dbUser != null)
             {
                 _mapper.Map(user, dbUser);
-                if (await _dbContext.SaveChangesAsync() > 0)
-                {
-                    return dbUser;
-                }
-
-                throw new Exception("Unexpected Exception !! concern developer");
+                await _dbContext.SaveChangesAsync();
+                return dbUser;
             }
 
-            throw new NotSupportedException("user does not exists in our system");
+            throw new NotSupportedException($"{nameof(User)} does not exists in our system");
 
         }
     }
