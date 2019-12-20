@@ -163,27 +163,6 @@ namespace BloggerAPI.Tests
         }
 
 
-        //[Fact]
-        //public void Verify_Throw_NotSupportedException_When_Update_Called_With_ExistingUser_And_Data_not_Saved()
-        //{
-        //    var dbContextMock = new Mock<IBloggerDbContext>();
-
-        //    dbContextMock.Setup(x
-        //                    => x.SaveChangesAsync(default)).ReturnsAsync(0);
-
-
-        //    Assert.ThrowsAsync<NotSupportedException>(
-        //        async () =>
-        //        {
-        //            var postMock = new Mock<Post>();
-        //            var user = _postService.Add(postMock.Object).Result;
-        //            user.PostTitle = "post is modified";
-        //            await _postService.Update(user);
-
-        //        });
-
-        //}
-
         #endregion
 
 
