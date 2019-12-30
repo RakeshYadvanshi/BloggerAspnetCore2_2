@@ -1,47 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BloggerAPI.DTO.Entities;
 using BloggerAPI.Interfaces;
-using BloggerAPI.Services;
+using Castle.Core;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 namespace BloggerAPI.Tests
 {
-    public class PostServiceShould
+    public class PostServiceShould : IClassFixture<ContainerFixture>
     {
-        private PostService _postService;
-        private ITestOutputHelper _outputHelper;
+        private readonly IPostService _postService;
         private IUserService _userService;
-        private User fakeUser;
-        public PostServiceShould(ITestOutputHelper outputHelper)
+        private readonly ITestOutputHelper _outputHelper;
+        public PostServiceShould(ITestOutputHelper outputHelper,
+            ContainerFixture container)
         {
             _outputHelper = outputHelper;
-            _postService = new PostService(Helper.DbContext, Helper.Mapper);
-            _userService = new UserService(Helper.DbContext, Helper.Mapper);
-            fakeUser = _userService.Add(new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now)).Result;
+            _postService = container.GetContainer.GetInstance<IPostService>();
+            _userService = container.GetContainer.GetInstance<IUserService>();
         }
 
         #region GetPosts
         [Fact]
         public void Verify_Give_Posts_When_GetPosts_Called()
         {
+            //arrange
+            var post = GetDefaultPost();
+            var postAdded = _postService.Add(post);
+            //post.Id = postAdded.Id;
+
+            //act
             var posts = _postService.GetPosts().Result;
-            Assert.IsAssignableFrom<IEnumerable<Post>>(posts);
+
+            //assert
+            //Assert.Contains(post, posts);
+            Assert.True(posts.Any());
+
+
         }
-
-
         #endregion
 
         #region GetPosts by UserId
         [Fact]
         public void Verify_Give_Posts_When_GetPostsByUserId_Called()
         {
-            var posts = _postService.GetPostsByUserId(fakeUser.Id).Result;
-            Assert.IsAssignableFrom<IEnumerable<Post>>(posts);
+            //arrange
+            var user = GetUserExistsInDb();
+            var post = GetPostExistsInDb(user);
+
+            //act
+            var posts = _postService.GetPostsByUserId(user.Id).Result;
+
+            //assert
+            //Assert.Contains(post, posts,new PostEquality());
+            Assert.True(posts.Any());
+            Assert.True(posts.First().CreatedBy == post.CreatedBy);
         }
 
 
@@ -53,21 +68,28 @@ namespace BloggerAPI.Tests
         public void Verify_Give_Post_When_GetPostById_Called_For_ExistingPost()
         {
             //arrange
-
-            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now);
-            var postAdded = _postService.Add(fakePost).Result;
+            var user = GetUserExistsInDb();
+            var post = GetPostExistsInDb(user);
 
             //act
-            var result = _postService.GetPostById(postAdded.Id).Result;
+            var result = _postService.GetPostById(post.Id).Result;
 
             //assert
-            Assert.Same(postAdded, result);
+            Assert.Equal(post.Id, result.Id);
+            Assert.Equal(post.PostTitle, result.PostTitle);
+
 
         }
         [Fact]
         public void Verify_Give_Null_When_GetPostById_Called_For_NonExistingPost()
         {
-            var result = _postService.GetPostById(It.IsAny<int>()).Result;
+            //arrange
+            var userId = 20;
+
+            //act
+            var result = _postService.GetPostById(userId).Result;
+
+            //assert
             Assert.Null(result);
         }
 
@@ -76,26 +98,33 @@ namespace BloggerAPI.Tests
         #region add
 
         [Fact]
-        public void Verify_Add_NewPost_When_Add_Called_With_NotNullUser()
+        public void Verify_NewPost_Added_When_Add_Called_With_ExitingUser()
         {
+            //arrange
+            var user = GetUserExistsInDb();
+            var post = GetPostByUser(user);
 
-            var beforePostsCount = _postService.GetPosts().Result.Count();
+            //act
+            var postAdded = _postService.Add(post).Result;
 
-            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now);
-            var post = _postService.Add(fakePost).Result;
+            //assert
+            var posts = _postService.GetPosts().Result;
+            var dbPost = _postService.GetPostById(post.Id).Result;
 
-
-            var afterPostsCount = _postService.GetPosts().Result.Count();
-            Assert.True(beforePostsCount + 1 == afterPostsCount);
-
-            Assert.Equal(post, _postService.GetPostById(fakePost.Id).Result);
+            Assert.True(posts.Any());
+            Assert.NotNull(dbPost);
 
         }
         [Fact]
         public void Verify_Throw_ArgumentNullException_When_Add_Called_With_Null()
         {
+            //assert
             Assert.ThrowsAsync<ArgumentNullException>(
-                async () => { await _postService.Add(null); });
+                async () =>
+                {
+                    //act
+                    await _postService.Add(null);
+                });
 
         }
 
@@ -107,6 +136,7 @@ namespace BloggerAPI.Tests
         [InlineData(3, 2, false)] // author is not editor
         public void Verify_When_CanEdit_Called(int editorId, int authorId, bool expectedResult)
         {
+            //arrange
             var user = new User
             {
                 Id = editorId
@@ -118,9 +148,11 @@ namespace BloggerAPI.Tests
 
             };
 
-            Assert.Equal(_postService.CanEdit(post, user), expectedResult);
+            //act
+            bool canEdit = _postService.CanEdit(post, user);
 
-
+            //asert
+            Assert.Equal(canEdit, expectedResult);
         }
 
 
@@ -130,19 +162,34 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_ArgumentNullException_When_Update_Called_With_Null()
         {
+            //assert
             Assert.ThrowsAsync<ArgumentNullException>(
-                async () => { await _postService.Update(null); });
+                async () =>
+                {
+                    //act
+                    await _postService.Update(null);
+                });
 
         }
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingPost()
         {
-            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now); ;
-            fakePost.Id = 20;
-            var exception = Assert.ThrowsAsync<NotSupportedException>(
-                async () => await _postService.Update(fakePost));
+            //arrange
+            var user = GetUserExistsInDb();
+            var post = GetPostExistsInDb(user);
 
-            Assert.Contains("exists in our system", exception.Result.Message);
+            post.Id = 20;
+
+            //assert
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () =>
+                {
+                    //act
+                    await _postService.Update(post);
+
+                });
+            Assert.Contains("not exists in our system", exception.Result.Message
+                , StringComparison.OrdinalIgnoreCase);
 
 
         }
@@ -150,16 +197,25 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify__Post_Get_Updated_When_Update_Called_With_ExistingPost()
         {
-            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now); ;
-            var post = _postService.Add(fakePost).Result;
-            _outputHelper.WriteLine(post.ToString());
+
+            //arrange
+            var user = GetUserExistsInDb();
+            var post = GetPostExistsInDb(user);
+
             post.PostTitle = "post is modified";
 
+            //act
             var updatedPost = _postService.Update(post).Result;
             _outputHelper.WriteLine(updatedPost.ToString());
 
-            Assert.Equal(updatedPost.PostTitle, post.PostTitle);
-            Assert.Equal(updatedPost, post);
+            //assert
+
+            var dbPost = _postService.GetPostById(post.Id).Result;
+
+            Assert.Equal(dbPost.PostTitle, post.PostTitle);
+            Assert.Equal(dbPost.Id, post.Id);
+
+            //Assert.Equal(updatedPost, post);
         }
 
 
@@ -171,39 +227,97 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_ArgumentNullException_When_Delete_Called_With_Null()
         {
+            //assert
             Assert.ThrowsAsync<ArgumentNullException>(
-                async () => { await _postService.Delete(null); });
+                async () =>
+                {
+                    //act
+                    await _postService.Delete(null);
+                });
 
-        }
-        [Fact]
-        public void Verify_Throw_NotSupportedException_When_Delete_Called_With_NonExistingUser()
-        {
-            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now); ;
-            fakePost.Id = 20;
-            var exception = Assert.ThrowsAsync<NotSupportedException>(
-                async () => await _postService.Delete(fakePost));
-
-            Assert.Contains("exists in our system", exception.Result.Message);
         }
 
         [Fact]
         public void Verify_Post_Get_Deleted_When_Get_Called_With_ExistingPost()
         {
 
-            var fakePost = new Post(String.Empty, String.Empty, String.Empty, fakeUser.Id, DateTime.Now);
-            var postAdded = _postService.Add(fakePost).Result;
-            _outputHelper.WriteLine(postAdded.ToString());
-            var crossVerifyPost = _postService.GetPostById(postAdded.Id).Result;
+            //arrange
+            var user = GetUserExistsInDb();
+            var post = GetPostExistsInDb(user);
+
+            //act
+            var deleteStatus = _postService.Delete(post).Result;
 
 
-            var deleteStatus = _postService.Delete(crossVerifyPost).Result;
-
-
+            //assert
+            var dbPost = _postService.GetPostById(post.Id).Result;
             Assert.True(deleteStatus);
-            Assert.Null(_postService.GetPostById(postAdded.Id).Result);
+            Assert.Null(dbPost);
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private Post GetDefaultPost()
+        {
+            return new Post()
+            {
+                CreatedBy = 0,
+                CreatedDate = DateTime.Now,
+                Description = "description",
+                PostTitle = $"post title {DateTime.Now}",
+                ShortDescription = $"short description {DateTime.Now}"
+            };
+        }
+
+        private Post GetPostByUser(User user)
+        {
+            var post = GetDefaultPost();
+            post.CreatedBy = user.Id;
+            return post;
+        }
+
+        private User GetUserExistsInDb()
+        {
+            var user = GetDefaultUser();
+            return _userService.Add(user).Result;
         }
 
 
+        private Post GetPostExistsInDb(User user)
+        {
+            var post = GetPostByUser(user);
+
+            return _postService.Add(post).Result;
+        }
+
+        private User GetDefaultUser()
+        {
+            return new User()
+            {
+                LastName = "lastname",
+                FirstName = "first name",
+                CreatedDate = DateTime.Now,
+                Email = "rk@gmail.com"
+            };
+        }
+
+        public class PostEquality : IEqualityComparer<Post>
+        {
+            public bool Equals(Post x, Post y)
+            {
+                return Helper.CompareProperties<Post>(x, y);
+                //return x.Id == y.Id &&
+                //       x.Description == y.Description &&
+                //       x.PostTitle == y.PostTitle;
+            }
+
+            public int GetHashCode(Post obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
         #endregion
 
     }

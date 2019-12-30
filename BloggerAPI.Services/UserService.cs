@@ -53,12 +53,15 @@ namespace BloggerAPI.Services
 
         public async Task<User> GetUserById(int userId)
         {
-            return await _dbContext.Users.Where(x => x.Id == userId).FirstOrDefaultAsync();
+            return await _dbContext.Users.Where(x => x.Id == userId)
+                .AsNoTracking().FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<User>> GetUsers()
         {
-            return await _dbContext.Users.ToListAsync();
+            return await _dbContext.Users
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<User> Update(User user)

@@ -55,18 +55,25 @@ namespace BloggerAPI.Services
 
         public async Task<Post> GetPostById(int postId)
         {
-            return await _dbContext.Posts.Where(x => x.Id == postId).FirstOrDefaultAsync();
+            return await _dbContext.Posts.Where(x => x.Id == postId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
         }
 
         public async Task<IEnumerable<Post>> GetPosts()
         {
-            return await _dbContext.Posts.ToListAsync();
+            return await _dbContext.Posts
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Post>> GetPostsByUserId(int userId)
         {
-            return await _dbContext.Posts.Where(_ => _.CreatedBy == userId).ToListAsync();
+            return await _dbContext.Posts
+                .Where(_ => _.CreatedBy == userId)
+                .AsNoTracking()
+                .ToListAsync();
 
         }
 
@@ -74,7 +81,8 @@ namespace BloggerAPI.Services
         {
             if (post == null) throw new ArgumentNullException(nameof(Post));
 
-            var dbUser = await _dbContext.Posts.Where(x => x.Id == post.Id).FirstOrDefaultAsync();
+            var dbUser = await _dbContext.Posts
+                .Where(x => x.Id == post.Id).FirstOrDefaultAsync();
             if (dbUser == null) 
                 throw new NotSupportedException($"{nameof(Post)} does not exists in our system");
 

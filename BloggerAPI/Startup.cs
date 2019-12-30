@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using StructureMap;
 using AutoMapper;
+using BloggerAPI.DTO.MapperProfiles;
 using BloggerAPI.Interfaces;
 using BloggerAPI.Services;
 
@@ -30,9 +31,12 @@ namespace BloggerAPI
                     .AddControllersAsServices()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(
+                
+                typeof(CommonSetup)
+            );
             services.AddDbContext<BloggerDbContext>(
-                opt => opt.UseInMemoryDatabase("Blogger"));
+                opt => opt.UseSqlServer(Configuration.GetConnectionString("BloggerApiDB")));
 
 
             return ConfigureIoC(services);

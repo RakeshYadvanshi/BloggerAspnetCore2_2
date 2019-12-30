@@ -1,39 +1,45 @@
-﻿using AutoMapper;
-using BloggerAPI.Data;
-using BloggerAPI.DTO.Entities;
-using BloggerAPI.Services;
-using Microsoft.EntityFrameworkCore;
+﻿using BloggerAPI.DTO.Entities;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.WebSockets;
 using BloggerAPI.Interfaces;
 using Xunit;
 using Xunit.Abstractions;
+
 namespace BloggerAPI.Tests
 {
 
-    public class UserServiceShould
+    public class UserServiceShould : IClassFixture<ContainerFixture>
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
         private readonly ITestOutputHelper _outputHelper;
-        public UserServiceShould(ITestOutputHelper outputHelper)
+
+        public UserServiceShould(ITestOutputHelper outputHelper, ContainerFixture container)
         {
             _outputHelper = outputHelper;
-            var dbService = Helper.DbContext;
-            _userService = new UserService(dbService, Helper.Mapper);
-
+            //SUT
+            _userService = container.GetContainer.GetInstance<IUserService>();
         }
 
         #region GetUsers
         [Fact]
         public void Verify_Give_Users_When_GetUsers_Called()
         {
-            var users = _userService.GetUsers().Result;
-            Assert.IsAssignableFrom<IEnumerable<User>>(users);
+            //arrange
+            var user = GetDefaultUser();
+            var userAdded = _userService.Add(user).Result;
+
+
+            //act
+            var result = _userService.GetUsers().Result;
+
+
+            //assert
+            Assert.True(result.Any());
+
+
         }
 
 
@@ -44,20 +50,30 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Give_User_When_GetUserById_Called_For_ExistingUser()
         {
-            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
-
+            //arrange
+            var user = GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
 
+            //act
             var result = _userService.GetUserById(user.Id).Result;
 
+            //assert
             Assert.NotNull(result);
-            Assert.Same( result, userAdded);
+            Assert.True(result.Id == user.Id);
+            Assert.True(result.FirstName == user.FirstName);
+            Assert.True(result.LastName == user.LastName);
 
         }
         [Fact]
         public void Verify_Give_Null_When_GetUserById_Called_For_NonExistingUser()
         {
-            var result = _userService.GetUserById(10).Result;
+            //arrange
+            var userid = 10;
+
+            //act
+            var result = _userService.GetUserById(userid).Result;
+
+            //assert
             Assert.Null(result);
         }
 
@@ -68,24 +84,31 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Add_NewUser_When_Add_Called_With_NotNullUser()
         {
+            //arrange
+            var user = GetDefaultUser();
 
-            var beforeUsersCount = _userService.GetUsers().Result.Count();
+            //act
+            var userAdded = _userService.Add(user).Result;
 
-            var userMock = new Mock<User>();
-            var user = _userService.Add(userMock.Object).Result;
-            var afterUsersCount = _userService.GetUsers().Result.Count();
+            //assert
 
+            var users = _userService.GetUsers().Result;
+            var dbUser = _userService.GetUserById(user.Id).Result;
 
-            Assert.True(beforeUsersCount + 1 == afterUsersCount);
-
-            Assert.Equal(user, _userService.GetUserById(user.Id).Result);
-
+            Assert.True(users.Any());
+            Assert.Equal(user.Id, dbUser.Id);
+            Assert.Equal(user.LastName, dbUser.LastName);
         }
         [Fact]
         public void Verify_Throw_ArgumentNullException_When_Add_Called_With_Null()
         {
+            //assert
             Assert.ThrowsAsync<ArgumentNullException>(
-                async () => { await _userService.Add(null); });
+                async () =>
+                {
+                    //act
+                    await _userService.Add(null);
+                });
 
         }
 
@@ -95,19 +118,30 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_ArgumentNullException_When_Update_Called_With_Null()
         {
+            //assert
             Assert.ThrowsAsync<ArgumentNullException>(
-                async () => { await _userService.Update(null); });
+                async () =>
+                {
+                    //act
+                    await _userService.Update(null);
+                });
 
         }
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingUser()
         {
-            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
+            //arrange
+            var user = GetDefaultUser();
 
+            //assert
             var exception = Assert.ThrowsAsync<NotSupportedException>(
-                   async () => await _userService.Update(user));
-
-            Assert.Contains("exists in our system", exception.Result.Message);
+                   async () =>
+                   {
+                       //act
+                       await _userService.Update(user);
+                   });
+            Assert.Contains("not exists in our system", exception.Result.Message,
+                StringComparison.OrdinalIgnoreCase);
         }
 
 
@@ -116,32 +150,33 @@ namespace BloggerAPI.Tests
         public void Verify_User_Get_Updated_When_Update_Called_With_ExistingUser()
         {
             //arrange
-            var fakeUser = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
-            _outputHelper.WriteLine(fakeUser.Id.ToString());
-            var user = _userService.Add(fakeUser).Result;
+            var user = GetDefaultUser();
+            var userAdded = _userService.Add(user).Result;
 
             //act
-            user.FirstName = "user is modified";
+            user.FirstName = "first name is modified";
+            user.LastName = "last name user is modified";
             var updatedUser = _userService.Update(user).Result;
 
             //assert
             Assert.Equal(updatedUser.FirstName, user.FirstName);
-            Assert.Equal(updatedUser, user);
+            Assert.Equal(updatedUser.LastName, user.LastName);
+            Assert.Equal(updatedUser.Id, user.Id);
         }
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_ExistingUser_And_Data_not_Saved()
         {
-            var dbContextMock = new Mock<IBloggerDbContext>();
+            //arrange
+            var user = GetDefaultUser();
+            var userAdded = _userService.Add(user).Result;
+            user.FirstName = "user is modified";
 
-            dbContextMock.Setup(x => x.SaveChangesAsync(default)).ReturnsAsync(0);
 
-
+            //assert
             Assert.ThrowsAsync<NotSupportedException>(
                 async () =>
                 {
-                    var userMock = new Mock<User>();
-                    var user = _userService.Add(userMock.Object).Result;
-                    user.FirstName = "user is modified";
+                    //act
                     await _userService.Update(user);
 
                 });
@@ -156,19 +191,31 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Throw_ArgumentNullException_When_Delete_Called_With_Null()
         {
+            //assert
             Assert.ThrowsAsync<ArgumentNullException>(
-                async () => { await _userService.Delete(null); });
+                async () =>
+                {
+                    //act
+                    await _userService.Delete(null);
+                });
 
         }
         [Fact]
         public void Verify_Throw_NotSupportedException_When_Delete_Called_With_NonExistingUser()
         {
-            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
+            //arrange
+            var user = GetDefaultUser();
             user.Id = 10;
-            var exception = Assert.ThrowsAsync<NotSupportedException>(
-                async () => await _userService.Delete(user));
 
-            Assert.Contains("exists in our system", exception.Result.Message);
+            //assert
+            var exception = Assert.ThrowsAsync<NotSupportedException>(
+                async () =>
+                {
+                    //act
+                    await _userService.Delete(user);
+                });
+            Assert.Contains("not exists in our system", exception.Result.Message,
+                StringComparison.OrdinalIgnoreCase);
 
 
         }
@@ -177,19 +224,48 @@ namespace BloggerAPI.Tests
         public void Verify_User_Get_Deleted_When_Delete_Called_With_ExistingUser()
         {
             //arrange
-            var user = new User(String.Empty, String.Empty, String.Empty, String.Empty, DateTime.Now);
+            var user = GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
-            _outputHelper.WriteLine(userAdded.ToString());
-            var crossVerifyUser = _userService.GetUserById(userAdded.Id).Result;
-
-            _outputHelper.WriteLine(crossVerifyUser.ToString());
 
             //act
-            var deleteStatus = _userService.Delete(crossVerifyUser).Result;
+            var deleteStatus = _userService.Delete(user).Result;
 
             //assert
+            var dbUser = _userService.GetUserById(userAdded.Id).Result;
             Assert.True(deleteStatus);
-            Assert.Null(_userService.GetUserById(userAdded.Id).Result);
+            Assert.Null(dbUser);
+        }
+
+        #endregion
+
+
+        #region helper Methods
+
+        private User GetDefaultUser()
+        {
+            return new User()
+            {
+                LastName = "lastname",
+                FirstName = "first name",
+                CreatedDate = DateTime.Now,
+                Email = "rk@gmail.com"
+            };
+        }
+
+        public class UserEquality : IEqualityComparer<User>
+        {
+            public bool Equals(User x, User y)
+            {
+                return Helper.CompareProperties<User>(x, y);
+                //return x.Id == y.Id &&
+                //       x.FirstName == y.FirstName &&
+                //       x.LastName == y.LastName;
+            }
+
+            public int GetHashCode(User obj)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using BloggerAPI.Data;
 using BloggerAPI.DTO.Entities;
 using BloggerAPI.DTO.Enum;
 using BloggerAPI.Interfaces;
@@ -51,8 +50,10 @@ namespace BloggerAPI.Services
 
             if (comment != null)
             {
-                var dbPost = await _dbContext.Comments.Where(x => x.Id == comment.Id)
-                             .FirstOrDefaultAsync();
+                var dbPost = await _dbContext.Comments
+                    .Where(x => x.Id == comment.Id)
+                    .FirstOrDefaultAsync();
+
                 if (dbPost != null)
                 {
                     _dbContext.Comments.Remove(dbPost);
@@ -74,12 +75,17 @@ namespace BloggerAPI.Services
 
         public async Task<Comment> GetCommentById(int commentId)
         {
-            return await _dbContext.Comments.Where(x => x.Id == commentId).FirstOrDefaultAsync();
+            return await _dbContext.Comments
+                .Where(x => x.Id == commentId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Comment>> GetComments()
         {
-            return await _dbContext.Comments.ToListAsync();
+            return await _dbContext.Comments
+                .AsNoTracking()
+                .ToListAsync();
 
         }
 
@@ -90,7 +96,9 @@ namespace BloggerAPI.Services
 
         private async Task<IEnumerable<Comment>> GetCommentsByType(int postId, CommentOnType type)
         {
-            return await _dbContext.Comments.Where(_ => _.CommentOn == type.ToString() && _.CommentOnId == postId).ToListAsync();
+            return await _dbContext.Comments
+                .Where(_ => _.CommentOn == type.ToString() && _.CommentOnId == postId)
+                .AsNoTracking().ToListAsync();
         }
 
         public async Task<IEnumerable<Comment>> GetCommentsByUserId(int userId)

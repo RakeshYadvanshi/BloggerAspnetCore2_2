@@ -1,41 +1,28 @@
-﻿using AutoMapper;
-using BloggerAPI.Data;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Text;
-using BloggerAPI.Interfaces;
 
 namespace BloggerAPI.Tests
 {
-    public static class Helper
+    public class Helper
     {
-        public static IBloggerDbContext DbContext
+        public static bool CompareProperties<T>(T obj1
+            , T obj2)
         {
-            get
-            {
-                var builder = new DbContextOptionsBuilder<BloggerDbContext>();
-                builder.UseInMemoryDatabase($"Tests{Guid.NewGuid()}");
-                var options = builder.Options;
-                var dbContext = new BloggerDbContext(options);
-                dbContext.Database.EnsureDeleted();
-                dbContext.Database.EnsureCreated();
 
-                return dbContext;
-            }
-        }
-
-        public static IMapper Mapper
-        {
-            get
+            var propertiesObj1 = obj1.GetType().GetProperties();
+            var propertiesObj2 = obj2.GetType().GetProperties();
+            for (var i = 0; i < propertiesObj1.Length; i++)
             {
-                var config = new MapperConfiguration(cfg =>
+
+                if (propertiesObj1[i].GetValue(obj1) != propertiesObj2[i].GetValue(obj2))
                 {
-                    cfg.AddProfile(new ProfileSetup());
-                });
-                return config.CreateMapper();
+                    return false;
+                }
             }
+
+            return true;
         }
     }
 }

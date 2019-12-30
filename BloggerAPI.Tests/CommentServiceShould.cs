@@ -1,43 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using BloggerAPI.DTO.Entities;
 using BloggerAPI.DTO.Enum;
 using BloggerAPI.Interfaces;
-using BloggerAPI.Services;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace BloggerAPI.Tests
 {
-    public class CommentServiceShould
+    public class CommentServiceShould : IClassFixture<ContainerFixture>
     {
-        private readonly CommentService _commentService;
-        private readonly UserService _userService;
-        private readonly PostService _postService;
+        private readonly ICommentService _commentService;
+        private readonly IUserService _userService;
+        private readonly IPostService _postService;
         private readonly User fakeUser;
         private readonly Post fakePost;
         private readonly User fakeCommentCreatorUserPost;
 
-        public CommentServiceShould()
+        // Fixture for dependency
+        public CommentServiceShould(ContainerFixture container)
         {
-            _userService = new UserService(Helper.DbContext, Helper.Mapper);
-            _postService = new PostService(Helper.DbContext, Helper.Mapper);
+            _userService = container.GetContainer.GetInstance<IUserService>();
+            _postService = container.GetContainer.GetInstance<IPostService>();
+            _commentService = container.GetContainer.GetInstance<ICommentService>();
 
-            _commentService = new CommentService(Helper.DbContext,
-                Helper.Mapper, _postService, _userService);
-
-            fakeUser = _userService.Add(new User(string.Empty, string.Empty, string.Empty, string.Empty, DateTime.Now))
+            fakeUser = _userService.Add(new User())
                 .Result;
             fakeCommentCreatorUserPost = _userService
-                .Add(new User(string.Empty, string.Empty, string.Empty, string.Empty, DateTime.Now)).Result;
+                .Add(new User()).Result;
 
-            fakePost = _postService.Add(new Post(string.Empty, string.Empty, string.Empty, fakeUser.Id, DateTime.Now))
+            fakePost = _postService.Add(new Post())
                 .Result;
         }
 
@@ -46,6 +39,12 @@ namespace BloggerAPI.Tests
         [Fact]
         public void Verify_Give_Comments_When_GetComments_Called()
         {
+            //Arrange
+
+            //Act
+
+            //Assert
+
             var comments = _commentService.GetComments().Result;
             Assert.IsAssignableFrom<IEnumerable<Comment>>(comments);
         }
@@ -94,9 +93,13 @@ namespace BloggerAPI.Tests
         public void Verify_Give_Comment_When_GetCommentById_Called_For_ExistingComment(
             CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty,
-                commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+
+                CommentOnId = commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
 
             var commntAdded = _commentService.Add(commentOnType, fakeComment).Result;
 
@@ -123,15 +126,19 @@ namespace BloggerAPI.Tests
         {
             var beforeCommentsCount = _commentService.GetComments().Result.Count();
 
-            var fakeComment = new Comment(string.Empty,
-                commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+
+                CommentOnId = commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
 
             var post = _commentService.Add(commentOnType, fakeComment).Result;
             var afterCommentsCount = _commentService.GetComments().Result.Count();
 
 
-            Assert.True(beforeCommentsCount + 1 == afterCommentsCount);
+            Assert.NotEqual(beforeCommentsCount, afterCommentsCount);
 
             Assert.Equal(post, _commentService.GetCommentById(fakeComment.Id).Result);
         }
@@ -155,8 +162,12 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Add_Called_With_NonExistingEntity(
             CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty, 20,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+                CommentOnId = 20,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
             fakeComment.Id = 20;
             var exception = Assert.ThrowsAsync<NotSupportedException>(
                 async () => await _commentService.Add(commentOnType, fakeComment));
@@ -184,14 +195,18 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingComment(
             CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty,
-                commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+
+                CommentOnId = commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
             fakeComment.Id = 20;
             var exception = Assert.ThrowsAsync<NotSupportedException>(
                 async () => await _commentService.Update(commentOnType, fakeComment));
 
-            Assert.Contains("exists in our system", exception.Result.Message);
+            Assert.Contains("exists in our system", exception.Result.Message, StringComparison.OrdinalIgnoreCase);
 
         }
 
@@ -201,8 +216,12 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingEntity(
                   CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty, 20,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+                CommentOnId = 20,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
             fakeComment.Id = 20;
             var exception = Assert.ThrowsAsync<NotSupportedException>(
                 async () => await _commentService.Update(commentOnType, fakeComment));
@@ -217,15 +236,18 @@ namespace BloggerAPI.Tests
         public void Verify_Comment_GetUpdated_When_Update_Called(
             CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty,
-                commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+                CommentOnId = commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
 
             var comment = _commentService.Add(commentOnType, fakeComment).Result;
 
             //act
             comment.CommentText = "comment is modified";
-            var updatedComment = _commentService.Update(commentOnType,comment).Result;
+            var updatedComment = _commentService.Update(commentOnType, comment).Result;
 
             //assert
             Assert.Equal(updatedComment.CommentText, comment.CommentText);
@@ -251,8 +273,11 @@ namespace BloggerAPI.Tests
             Assert.ThrowsAsync<NotSupportedException>(
                 async () =>
                 {
-                    await _commentService.Delete(new Comment(String.Empty, Int32.MaxValue, String.Empty, DateTime.Now,
-                        DateTime.MaxValue, fakeCommentCreatorUserPost.Id));
+                    await _commentService.Delete(new Comment()
+                    {
+                        CommentOnId = 20,
+                        CreatedBy = fakeCommentCreatorUserPost.Id
+                    });
                 });
         }
 
@@ -261,9 +286,13 @@ namespace BloggerAPI.Tests
         [InlineData(CommentOnType.Users)]
         public void Verify_Comment_Get_Deleted_When_Get_Called_With_ExistingComment(CommentOnType commentOnType)
         {
-            var fakeComment = new Comment(string.Empty,
-                commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
-                commentOnType.ToString(), DateTime.Now, DateTime.Today, fakeCommentCreatorUserPost.Id);
+            var fakeComment = new Comment()
+            {
+
+                CommentOnId = commentOnType == CommentOnType.Users ? fakeUser.Id : fakePost.Id,
+                CommentOn = commentOnType.ToString(),
+                CreatedBy = fakeCommentCreatorUserPost.Id
+            };
             var addedComment = _commentService.Add(commentOnType, fakeComment).Result;
 
             var deleteStatus = _commentService.Delete(addedComment).Result;

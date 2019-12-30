@@ -2,14 +2,14 @@
 using BloggerAPI.DTO.Entities;
 using BloggerAPI.DTO.ViewModels;
 
-namespace BloggerAPI.Tests
+namespace BloggerAPI.DTO.MapperProfiles
 {
-    public class ProfileSetup :Profile
+    public class CommonSetup:Profile
     {
-        public ProfileSetup()
+        public CommonSetup()
         {
             CreateMap<Comment, CommentViewModel>()
-                .ReverseMap();
+               .ReverseMap();
             CreateMap<User, UserViewModel>()
                .ReverseMap();
             CreateMap<Post, PostViewModel>()
