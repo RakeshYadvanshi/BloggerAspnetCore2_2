@@ -29,7 +29,7 @@ namespace BloggerAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(UserViewModel viewModel)
         {
-            var user = _mapper.Map(viewModel, new User());
+            var user = _mapper.Map<User>(viewModel);
             user.CreatedDate = DateTime.Now;
             user.LastModified = null;
             if (await _userService.Add(user) != null)
@@ -38,7 +38,7 @@ namespace BloggerAPI.Controllers
             }
             else
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError,
+                return StatusCode(StatusCodes.Status500InternalServerError,
                     "user not saved!! try again or concern developer");
             }
 
@@ -60,15 +60,13 @@ namespace BloggerAPI.Controllers
                 }
                 else
                 {
-                    return this.StatusCode(StatusCodes.Status404NotFound,
-                           "user not found in our system!!");
+                    return NotFound("user not found in our system!!");
                 }
             }
             catch (Exception)
             {
                 //set up logger
-                return this.StatusCode(StatusCodes.Status500InternalServerError,
-                            "user not saved!! try again or concern developer");
+                return BadRequest("user not saved!! try again or concern developer");
             }
         }
 
@@ -86,14 +84,12 @@ namespace BloggerAPI.Controllers
                 }
                 else
                 {
-                    return this.StatusCode(StatusCodes.Status500InternalServerError,
-                         "user not deleted!! try again or concern developer");
+                    return BadRequest("user not deleted!! try again or concern developer");
                 }
             }
             else
             {
-                return this.StatusCode(StatusCodes.Status404NotFound,
-                       "user not found in our system!!");
+                return NotFound("user not found in our system!!");
             }
         }
     }

@@ -26,7 +26,7 @@ namespace BloggerAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(int userId)
         {
-            return Ok(_mapper.Map<Post[]>(await _postService.GetPostsByUserId(userId)));
+            return Ok(_mapper.Map<PostViewModel[]>(await _postService.GetPostsByUserId(userId)));
         }
         [HttpPost]
         public async Task<IActionResult> Post(int userId, PostViewModel viewModel)
@@ -36,8 +36,7 @@ namespace BloggerAPI.Controllers
             if (user == null)
             {
 
-                return this.StatusCode(StatusCodes.Status400BadRequest,
-                    "user does not exists in our system!!");
+                return NotFound("user does not exists in our system!!");
             }
             var post = _mapper.Map(viewModel, new Post());
             post.CreatedDate = DateTime.Now;
@@ -50,8 +49,7 @@ namespace BloggerAPI.Controllers
             }
             else
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError,
-                    "user not saved!! try again or concern developer");
+                return BadRequest("post not saved!! try again or concern developer");
             }
 
         }
@@ -66,15 +64,13 @@ namespace BloggerAPI.Controllers
                 var oldPost = await _postService.GetPostById(viewModel.Id);
                 if (user == null)
                 {
-                    return this.StatusCode(StatusCodes.Status404NotFound,
-                           "user not found in our system!!");
+                    return NotFound("user not found in our system!!");
                 }
                 if (oldPost != null)
                 {
                     if (!_postService.CanEdit(oldPost, user))
                     {
-                        return this.StatusCode(StatusCodes.Status203NonAuthoritative,
-                               $"this user {user.FirstName} {user.LastName} can't edit post {oldPost.PostTitle}!!");
+                        return Unauthorized($"this user {user.FirstName} {user.LastName} can't edit post {oldPost.PostTitle}!!");
                     }
                     _mapper.Map(viewModel, oldPost);
                     oldPost.LastModified = DateTime.Now;
@@ -83,15 +79,13 @@ namespace BloggerAPI.Controllers
                 }
                 else
                 {
-                    return this.StatusCode(StatusCodes.Status404NotFound,
-                           "post not found in our system!!");
+                    return NotFound("post not found in our system!!");
                 }
             }
             catch (Exception)
             {
                 //set up logger
-                return this.StatusCode(StatusCodes.Status500InternalServerError,
-                            "post not saved!! try again or concern developer");
+                return BadRequest("post not saved!! try again or concern developer");
             }
         }
 
@@ -103,33 +97,30 @@ namespace BloggerAPI.Controllers
         {
 
             var oldPost = await _postService.GetPostById(Id);
-            if (oldPost != null)
+            if (oldPost == null)
+                return NotFound("post not found in our system!!");
+
+
+            var user = await _userService.GetUserById(userId);
+            if (user == null)
+                return NotFound("user not found!!");
+
+
+            if (!_postService.CanEdit(oldPost, user))
+                return Unauthorized("permission denied!!");
+
+
+            if (await _postService.Delete(oldPost))
             {
-                var user = await _userService.GetUserById(userId);
-                if (_postService.CanEdit(oldPost,user))
-                {
-                    if (await _postService.Delete(oldPost))
-                    {
-                        return Ok();
-                    }
-                    else
-                    {
-                        return this.StatusCode(StatusCodes.Status500InternalServerError,
-                             "post not deleted!!");
-                    }
-                }
-                else
-                {
-                    return this.StatusCode(StatusCodes.Status400BadRequest,
-                             "permission denied!!");
-                }
-                
+                return Ok();
             }
-            else
-            {
-                return this.StatusCode(StatusCodes.Status404NotFound,
-                       "post not found in our system!!");
-            }
+
+            return BadRequest("post not deleted!!");
+
+
+
         }
+
+
     }
 }
