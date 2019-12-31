@@ -62,7 +62,8 @@ namespace BloggerAPI.Services
                 }
                 else
                 {
-                    throw new NotSupportedException("comment does not exists in our system");
+                    throw new NotSupportedException($"{nameof(comment)} does " +
+                                                    $"not exists in our system");
 
                 }
             }

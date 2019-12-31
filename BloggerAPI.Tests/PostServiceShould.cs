@@ -27,7 +27,7 @@ namespace BloggerAPI.Tests
         public void Verify_Give_Posts_When_GetPosts_Called()
         {
             //arrange
-            var post = GetDefaultPost();
+            var post = Helper.PostFake.GetDefaultPost();
             var postAdded = _postService.Add(post);
             //post.Id = postAdded.Id;
 
@@ -47,8 +47,8 @@ namespace BloggerAPI.Tests
         public void Verify_Give_Posts_When_GetPostsByUserId_Called()
         {
             //arrange
-            var user = GetUserExistsInDb();
-            var post = GetPostExistsInDb(user);
+            var user = Helper.UserFake.GetUserExistsInDb(_userService);
+            var post = Helper.PostFake.GetPostExistsInDb(user, _postService);
 
             //act
             var posts = _postService.GetPostsByUserId(user.Id).Result;
@@ -68,8 +68,8 @@ namespace BloggerAPI.Tests
         public void Verify_Give_Post_When_GetPostById_Called_For_ExistingPost()
         {
             //arrange
-            var user = GetUserExistsInDb();
-            var post = GetPostExistsInDb(user);
+            var user = Helper.UserFake.GetUserExistsInDb(_userService);
+            var post = Helper.PostFake.GetPostExistsInDb(user, _postService);
 
             //act
             var result = _postService.GetPostById(post.Id).Result;
@@ -101,8 +101,8 @@ namespace BloggerAPI.Tests
         public void Verify_NewPost_Added_When_Add_Called_With_ExitingUser()
         {
             //arrange
-            var user = GetUserExistsInDb();
-            var post = GetPostByUser(user);
+            var user = Helper.UserFake.GetUserExistsInDb(_userService);
+            var post = Helper.PostFake.GetPostByUser(user);
 
             //act
             var postAdded = _postService.Add(post).Result;
@@ -175,8 +175,8 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingPost()
         {
             //arrange
-            var user = GetUserExistsInDb();
-            var post = GetPostExistsInDb(user);
+            var user = Helper.UserFake.GetUserExistsInDb(_userService);
+            var post = Helper.PostFake.GetPostExistsInDb(user, _postService);
 
             post.Id = 20;
 
@@ -199,8 +199,8 @@ namespace BloggerAPI.Tests
         {
 
             //arrange
-            var user = GetUserExistsInDb();
-            var post = GetPostExistsInDb(user);
+            var user = Helper.UserFake.GetUserExistsInDb(_userService);
+            var post = Helper.PostFake.GetPostExistsInDb(user, _postService);
 
             post.PostTitle = "post is modified";
 
@@ -242,8 +242,8 @@ namespace BloggerAPI.Tests
         {
 
             //arrange
-            var user = GetUserExistsInDb();
-            var post = GetPostExistsInDb(user);
+            var user = Helper.UserFake.GetUserExistsInDb(_userService);
+            var post = Helper.PostFake.GetPostExistsInDb(user, _postService);
 
             //act
             var deleteStatus = _postService.Delete(post).Result;
@@ -257,68 +257,7 @@ namespace BloggerAPI.Tests
 
         #endregion
 
-        #region Helper Methods
 
-        private Post GetDefaultPost()
-        {
-            return new Post()
-            {
-                CreatedBy = 0,
-                CreatedDate = DateTime.Now,
-                Description = "description",
-                PostTitle = $"post title {DateTime.Now}",
-                ShortDescription = $"short description {DateTime.Now}"
-            };
-        }
-
-        private Post GetPostByUser(User user)
-        {
-            var post = GetDefaultPost();
-            post.CreatedBy = user.Id;
-            return post;
-        }
-
-        private User GetUserExistsInDb()
-        {
-            var user = GetDefaultUser();
-            return _userService.Add(user).Result;
-        }
-
-
-        private Post GetPostExistsInDb(User user)
-        {
-            var post = GetPostByUser(user);
-
-            return _postService.Add(post).Result;
-        }
-
-        private User GetDefaultUser()
-        {
-            return new User()
-            {
-                LastName = "lastname",
-                FirstName = "first name",
-                CreatedDate = DateTime.Now,
-                Email = "rk@gmail.com"
-            };
-        }
-
-        public class PostEquality : IEqualityComparer<Post>
-        {
-            public bool Equals(Post x, Post y)
-            {
-                return Helper.CompareProperties<Post>(x, y);
-                //return x.Id == y.Id &&
-                //       x.Description == y.Description &&
-                //       x.PostTitle == y.PostTitle;
-            }
-
-            public int GetHashCode(Post obj)
-            {
-                return obj.GetHashCode();
-            }
-        }
-        #endregion
 
     }
 }

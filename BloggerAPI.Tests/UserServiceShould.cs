@@ -28,7 +28,7 @@ namespace BloggerAPI.Tests
         public void Verify_Give_Users_When_GetUsers_Called()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
 
 
@@ -51,7 +51,7 @@ namespace BloggerAPI.Tests
         public void Verify_Give_User_When_GetUserById_Called_For_ExistingUser()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
 
             //act
@@ -85,7 +85,7 @@ namespace BloggerAPI.Tests
         public void Verify_Add_NewUser_When_Add_Called_With_NotNullUser()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
 
             //act
             var userAdded = _userService.Add(user).Result;
@@ -131,7 +131,7 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_NonExistingUser()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
 
             //assert
             var exception = Assert.ThrowsAsync<NotSupportedException>(
@@ -150,7 +150,7 @@ namespace BloggerAPI.Tests
         public void Verify_User_Get_Updated_When_Update_Called_With_ExistingUser()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
 
             //act
@@ -167,7 +167,7 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Update_Called_With_ExistingUser_And_Data_not_Saved()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
             user.FirstName = "user is modified";
 
@@ -204,7 +204,7 @@ namespace BloggerAPI.Tests
         public void Verify_Throw_NotSupportedException_When_Delete_Called_With_NonExistingUser()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
             user.Id = 10;
 
             //assert
@@ -224,7 +224,7 @@ namespace BloggerAPI.Tests
         public void Verify_User_Get_Deleted_When_Delete_Called_With_ExistingUser()
         {
             //arrange
-            var user = GetDefaultUser();
+            var user = Helper.UserFake.GetDefaultUser();
             var userAdded = _userService.Add(user).Result;
 
             //act
@@ -239,36 +239,7 @@ namespace BloggerAPI.Tests
         #endregion
 
 
-        #region helper Methods
-
-        private User GetDefaultUser()
-        {
-            return new User()
-            {
-                LastName = "lastname",
-                FirstName = "first name",
-                CreatedDate = DateTime.Now,
-                Email = "rk@gmail.com"
-            };
-        }
-
-        public class UserEquality : IEqualityComparer<User>
-        {
-            public bool Equals(User x, User y)
-            {
-                return Helper.CompareProperties<User>(x, y);
-                //return x.Id == y.Id &&
-                //       x.FirstName == y.FirstName &&
-                //       x.LastName == y.LastName;
-            }
-
-            public int GetHashCode(User obj)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        #endregion
+      
 
 
     }
