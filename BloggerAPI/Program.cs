@@ -20,5 +20,6 @@ namespace BloggerAPI
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>();
+        //test build
     }
 }
